@@ -13,7 +13,6 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.shaded.com.fasterxml.jackson.core.JsonProcessingException;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.math.BigDecimal;
@@ -24,11 +23,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Testcontainers
 @AutoConfigureMockMvc
 class ProductServiceApplicationTests {
+	@Container
+	static MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:7.0.6");
 	@Autowired
 	private MockMvc mockMvc;
+	@Autowired
 	private ObjectMapper objectMapper;
-	@Container
-	private static final MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:7.0.6");
+
+	static {
+		mongoDBContainer.start();
+	}
 
 	@DynamicPropertySource
 	static void setProperties(DynamicPropertyRegistry registry) {
@@ -41,23 +45,15 @@ class ProductServiceApplicationTests {
 
 	// Integration Test
 	@Test
-	void createProduct()  {
-        String ProductRequest = null;
-        try {
-            ProductRequest = objectMapper.writeValueAsString(getProductRequest());
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+	void createProduct() throws Exception {
+		String ProductRequest = null;
+		ProductRequest = objectMapper.writeValueAsString(getProductRequest());
 
-        try {
-            mockMvc.perform(MockMvcRequestBuilders.post("/api/product")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(ProductRequest))
-					.andExpect(status().isCreated());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
+		mockMvc.perform(MockMvcRequestBuilders.post("/api/product")
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(ProductRequest))
+				.andExpect(status().isCreated());
+	}
 
 	private ProductRequest getProductRequest() {
 		return ProductRequest.builder()
