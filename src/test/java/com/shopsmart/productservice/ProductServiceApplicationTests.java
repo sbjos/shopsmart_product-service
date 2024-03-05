@@ -1,5 +1,6 @@
 package com.shopsmart.productservice;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shopsmart.productservice.dto.ProductRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +14,6 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.math.BigDecimal;
 
@@ -21,6 +21,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 // FIXME: Fix this test
 // TODO: Complete this text for all the other controllers
+
+/**
+ * Integration Testing
+ */
 @SpringBootTest
 @Testcontainers
 @AutoConfigureMockMvc
@@ -41,27 +45,39 @@ class ProductServiceApplicationTests {
 		registry.add("spring.data.mongodb.uri", mongoDBContainer::getReplicaSetUrl);
 	}
 
-//	@Test
-//	void contextLoads() {
-//	}
-
-	// Integration Test
 	@Test
-	void createProduct() throws Exception {
-		String ProductRequest = null;
-		ProductRequest = objectMapper.writeValueAsString(getProductRequest());
+	void addProduct_successful() throws Exception {
+		// GIVEN
+		String product = objectMapper.writeValueAsString(
+				ProductRequest.builder()
+						.name("Test Name")
+						.description("This is a test")
+						.price(BigDecimal.valueOf(15.89))
+						.build()
+		);
 
+		// WHEN - THEN
 		mockMvc.perform(MockMvcRequestBuilders.post("/api/product")
 						.contentType(MediaType.APPLICATION_JSON)
-						.content(ProductRequest))
+						.content(product))
 				.andExpect(status().isCreated());
 	}
 
-	private ProductRequest getProductRequest() {
-		return ProductRequest.builder()
-				.name("Test Name")
-				.description("This is a test")
-				.price(BigDecimal.valueOf(15.89))
-				.build();
+	@Test
+	void addProduct_notSuccessful() throws Exception {
+		// GIVEN
+		String product = objectMapper.writeValueAsString(
+				ProductRequest.builder()
+//						.name("Test Name")
+//						.description("This is a test")
+//						.price(BigDecimal.valueOf(15.89))
+						.build()
+		);
+
+		// WHEN - THEN
+		mockMvc.perform(MockMvcRequestBuilders.post("/api/product")
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(product))
+				.andExpect(status().isCreated());
 	}
 }

@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -18,7 +19,7 @@ public class ProductService {
 
     private final ProductRepository productRepository;
 
-    public void createProduct(ProductRequest productRequest) {
+    public void addProduct(ProductRequest productRequest) {
         Product product = Product.builder()
                 .name(productRequest.getName())
                 .description(productRequest.getDescription())
@@ -34,6 +35,17 @@ public class ProductService {
         return productRepository.findAll().stream()
                 .map(this::mapToProductResponse)
                 .collect(Collectors.toList());
+    }
+
+    public ProductResponse getProduct(String id) {
+         Product product = Optional.of(productRepository.findById(id)).get()
+                 .orElse(new Product());
+
+        return mapToProductResponse(product);
+    }
+
+    public void deleteProduct(String id) {
+        productRepository.deleteById(id);
     }
 
     private ProductResponse mapToProductResponse(Product product) {
