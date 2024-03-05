@@ -46,6 +46,8 @@ public class ProductService {
 
     public void deleteProduct(String id) {
         productRepository.deleteById(id);
+
+        log.info("Product {} is deleted", id);
     }
 
     private ProductResponse mapToProductResponse(Product product) {

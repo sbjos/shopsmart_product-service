@@ -19,9 +19,6 @@ import java.math.BigDecimal;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-// FIXME: Fix this test
-// TODO: Complete this text for all the other controllers
-
 /**
  * Integration Testing
  */
