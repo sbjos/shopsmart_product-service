@@ -2,6 +2,7 @@ package com.shopsmart.productservice.service;
 
 import com.shopsmart.productservice.dto.ProductRequest;
 import com.shopsmart.productservice.dto.ProductResponse;
+import com.shopsmart.productservice.exception.ProductNotFoundException;
 import com.shopsmart.productservice.model.Product;
 import com.shopsmart.productservice.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -32,9 +33,16 @@ public class ProductService {
     }
 
     public List<ProductResponse> getAllProducts() {
-        return productRepository.findAll().stream()
-                .map(this::mapToProductResponse)
-                .collect(Collectors.toList());
+        try {
+        List<Product> productList = productRepository.findAll();
+
+            return productList.stream()
+                    .map(this::mapToProductResponse)
+                    .toList();
+        }
+        catch (NullPointerException e) {
+            throw new ProductNotFoundException("Product list not found");
+        }
     }
 
     public ProductResponse getProduct(String id) {
