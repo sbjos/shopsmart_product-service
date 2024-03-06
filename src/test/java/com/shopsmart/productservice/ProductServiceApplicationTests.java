@@ -1,10 +1,13 @@
 package com.shopsmart.productservice;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shopsmart.productservice.dto.ProductRequest;
 import com.shopsmart.productservice.repository.ProductRepository;
-import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -16,12 +19,9 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.shaded.com.google.common.collect.Lists;
 
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -30,6 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest
 @Testcontainers
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @AutoConfigureMockMvc
 class ProductServiceApplicationTests {
 	@Container
@@ -51,75 +52,52 @@ class ProductServiceApplicationTests {
 	}
 
 	@Test
-	void addProduct_successful() throws Exception {
-		// GIVEN
-		String product = objectMapper.writeValueAsString(
-				ProductRequest.builder()
-						.name("Test Name")
-						.description("This is a test")
-						.price(BigDecimal.valueOf(15.89))
-						.build()
-		);
-
-		// WHEN - THEN
+	@Order(1)
+	void addProduct() throws Exception {
 		mockMvc.perform(MockMvcRequestBuilders.post("/api/product")
 						.contentType(MediaType.APPLICATION_JSON)
-						.content(product))
+						.content(products()))
 				.andExpect(status().isCreated());
 	}
 
 	@Test
-	void getAllProduct_productsExist() throws Exception {
-		// GIVEN
-		List<String> products = List.of(
-				objectMapper.writeValueAsString(ProductRequest.builder()
-						.name("Test Name")
-						.description("This is a test")
-						.price(BigDecimal.valueOf(15.89))
-						.build()),
+	@Order(2)
+	void getAllProduct() throws Exception {
+		String name = "Test Name";
 
-				objectMapper.writeValueAsString(ProductRequest.builder()
-						.name("Test Name")
-						.description("This is a test")
-						.price(BigDecimal.valueOf(15.89))
-						.build())
-		);
-
-
-		// WHEN - THEN
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/product")
 						.contentType(MediaType.APPLICATION_JSON)
-						.content(products.toString()))
+						.content(name))
 				.andExpect(status().isOk());
 	}
 
 	@Test
-	void getAllProduct_productsDoesNotExist() throws Exception {
-		// GIVEN
-		List<String> products = List.of();
+	@Order(3)
+	void getProduct() throws Exception {
+		String name = "Test Name";
 
-		// WHEN - THEN
-		mockMvc.perform(MockMvcRequestBuilders.get("/api/product")
-						.contentType(MediaType.APPLICATION_JSON)
-						.content(products.toString()))
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/product/{name}", name)
+						.contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk());
 	}
 
 	@Test
-	void getProduct_productExist() throws Exception {
-		// GIVEN
-		String id = "testID";
+	@Order(4)
+	void deleteProduct() throws Exception {
+		String name = "Test Name";
 
-		ProductRequest product = ProductRequest.builder()
+		mockMvc.perform(MockMvcRequestBuilders.delete("/api/product/{name}", name)
+						.contentType(MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk());
+	}
+
+	// Test helper
+	private String products() throws JsonProcessingException {
+		return objectMapper.writeValueAsString(ProductRequest.builder()
 				.name("Test Name")
 				.description("This is a test")
 				.price(BigDecimal.valueOf(15.89))
-				.build();
-
-		// WHEN - THEN
-		mockMvc.perform(MockMvcRequestBuilders.get("/api/product/{id}")
-						.contentType(MediaType.APPLICATION_JSON)
-						.content(id))
-				.andExpect(status().isOk());
+				.build()
+		);
 	}
 }

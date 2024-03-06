@@ -28,15 +28,15 @@ public class ProductController {
         return productService.getAllProducts();
     }
 
-    @GetMapping(value = "/{id}")
+    @GetMapping(value = "/{name}")
     @ResponseStatus(HttpStatus.OK)
-    public ProductResponse getProduct(@PathVariable String id) {
-        return productService.getProduct(id);
+    public ProductResponse getProduct(@PathVariable String name) {
+        return productService.getProduct(name);
     }
 
-    @DeleteMapping(value = "/{id}")
+    @DeleteMapping(value = "/{name}")
     @ResponseStatus(HttpStatus.OK)
-    public void deleteProduct(@PathVariable String id) {
-        productService.deleteProduct(id);
+    public void deleteProduct(@PathVariable String name) {
+        productService.deleteProduct(name);
     }
 }

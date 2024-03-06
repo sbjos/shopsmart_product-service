@@ -10,8 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,33 +27,37 @@ public class ProductService {
 
         productRepository.save(product);
 
-        log.info("Product {} is saved", product.getId());
+        log.info("{} is saved", product.getName());
     }
 
     public List<ProductResponse> getAllProducts() {
-        try {
         List<Product> productList = productRepository.findAll();
 
+        if (!productList.isEmpty()) {
             return productList.stream()
                     .map(this::mapToProductResponse)
                     .toList();
-        }
-        catch (NullPointerException e) {
+        } else {
             throw new ProductNotFoundException("Product list not found");
         }
     }
 
-    public ProductResponse getProduct(String id) {
-         Product product = Optional.of(productRepository.findById(id)).get()
-                 .orElse(new Product());
+    public ProductResponse getProduct(String name) {
+         Product product = productRepository.findByName(name)
+                 .orElseThrow(() ->
+                         new ProductNotFoundException(String.format("%s not found", name)));
 
         return mapToProductResponse(product);
     }
 
-    public void deleteProduct(String id) {
-        productRepository.deleteById(id);
+    public void deleteProduct(String name) {
+        if (getProduct(name) != null) {
+            productRepository.deleteByName(name);
 
-        log.info("Product {} is deleted", id);
+            log.info("{} deleted", name);
+        } else {
+            throw new ProductNotFoundException(String.format("%s not found", name));
+        }
     }
 
     private ProductResponse mapToProductResponse(Product product) {
@@ -66,5 +68,4 @@ public class ProductService {
                 .price(product.getPrice())
                 .build();
     }
-
 }
