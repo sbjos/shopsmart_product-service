@@ -43,21 +43,20 @@ public class ProductService {
     }
 
     public ProductResponse getProduct(String name) {
-         Product product = productRepository.findByName(name)
-                 .orElseThrow(() ->
-                         new ProductNotFoundException(String.format("%s not found", name)));
-
-        return mapToProductResponse(product);
+        return mapToProductResponse(findProduct(name));
     }
 
     public void deleteProduct(String name) {
-        if (getProduct(name) != null) {
-            productRepository.deleteByName(name);
+        productRepository.delete(findProduct(name));
 
             log.info("{} deleted", name);
-        } else {
-            throw new ProductNotFoundException(String.format("%s not found", name));
-        }
+    }
+
+    private Product findProduct(String name) {
+        return productRepository.findByName(name)
+                .orElseThrow(() ->
+                        new ProductNotFoundException(String.format("%s not found", name))
+                );
     }
 
     private ProductResponse mapToProductResponse(Product product) {
