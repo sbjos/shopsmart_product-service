@@ -1,3 +1,3 @@
 # Product Service
 
-This is a microservice of Shop Smart application responsible for product services.
+This is a microservice of Shopsmart application responsible for product services.

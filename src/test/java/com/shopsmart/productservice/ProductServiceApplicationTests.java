@@ -66,8 +66,7 @@ class ProductServiceApplicationTests {
 		String name = "Test Name";
 
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/product")
-						.contentType(MediaType.APPLICATION_JSON)
-						.content(name))
+						.contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk());
 	}
 
