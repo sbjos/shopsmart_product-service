@@ -18,16 +18,25 @@ public class ProductService {
 
     private final ProductRepository productRepository;
 
-    public void addProduct(ProductRequest productRequest) {
+    // FIXME: This should have its own service for store owner to add products.
+    public ProductResponse addProduct(ProductRequest productRequest) {
         Product product = Product.builder()
                 .name(productRequest.getName())
                 .description(productRequest.getDescription())
                 .price(productRequest.getPrice())
                 .build();
 
-        productRepository.save(product);
+        try {
+            Product existingProduct = findProduct(product.getName());
+            log.info("This product already exist");
+            return new ProductResponse();
+        } catch (ProductNotFoundException e) {
+            log.info("Product does not exist", e);
+        }
 
+        productRepository.save(product);
         log.info("{} is saved", product.getName());
+        return mapToProductResponse(product);
     }
 
     public List<ProductResponse> getAllProducts() {
@@ -37,19 +46,34 @@ public class ProductService {
             return productList.stream()
                     .map(this::mapToProductResponse)
                     .toList();
+
         } else {
-            throw new ProductNotFoundException("Product list not found");
+            log.info("Product list not found", new ProductNotFoundException("Product list not found"));
+            return List.of();
         }
     }
 
     public ProductResponse getProduct(String name) {
-        return mapToProductResponse(findProduct(name));
+        try {
+            return mapToProductResponse(findProduct(name));
+
+        } catch (ProductNotFoundException e) {
+            log.info("Product not found", e);
+        }
+        return new ProductResponse();
     }
 
-    public void deleteProduct(String name) {
-        productRepository.delete(findProduct(name));
+    // FIXME: This should have its own service for store owner to add products.
+    public ProductResponse deleteProduct(String name) {
+        try {
+            Product product = findProduct(name);
+            productRepository.delete(findProduct(name));
+            return mapToProductResponse(product);
 
-            log.info("{} deleted", name);
+        } catch (ProductNotFoundException e) {
+            log.info("Product not found", e);
+        }
+        return new ProductResponse();
     }
 
     private Product findProduct(String name) {
