@@ -2,6 +2,7 @@ package com.shopsmart.productservice.service;
 
 import com.shopsmart.productservice.dto.ProductRequest;
 import com.shopsmart.productservice.dto.ProductResponse;
+import com.shopsmart.productservice.exception.ProductAlreadyExistException;
 import com.shopsmart.productservice.exception.ProductNotFoundException;
 import com.shopsmart.productservice.model.Product;
 import com.shopsmart.productservice.repository.ProductRepository;
@@ -18,24 +19,26 @@ public class ProductService {
 
     private final ProductRepository productRepository;
 
-    // FIXME: This should have its own service for store owner to add products.
     public ProductResponse addProduct(ProductRequest productRequest) {
-        Product product = Product.builder()
-                .name(productRequest.getName())
-                .description(productRequest.getDescription())
-                .price(productRequest.getPrice())
-                .build();
+        Product product = new Product();
 
         try {
-            Product existingProduct = findProduct(product.getName());
-            log.info("This product already exist");
-            return new ProductResponse();
+            product = Product.builder()
+                    .name(productRequest.getName())
+                    .description(productRequest.getDescription())
+                    .price(productRequest.getPrice())
+                    .build();
+
+            findProduct(product.getName());
+            log.info("{} already exist", product.getName(), new ProductAlreadyExistException(
+                    String.format("%s already exist", product.getName()))
+            );
         } catch (ProductNotFoundException e) {
-            log.info("Product does not exist", e);
+            log.info("{} does not exist", product.getName());
+            productRepository.save(product);
+            log.info("{} is saved", product.getName());
         }
 
-        productRepository.save(product);
-        log.info("{} is saved", product.getName());
         return mapToProductResponse(product);
     }
 
