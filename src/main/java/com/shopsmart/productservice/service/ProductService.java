@@ -20,19 +20,18 @@ public class ProductService {
     private final ProductRepository productRepository;
 
     public ProductResponse addProduct(ProductRequest productRequest) {
-        Product product = new Product();
+        Product product = Product.builder()
+                .name(productRequest.getName())
+                .description(productRequest.getDescription())
+                .price(productRequest.getPrice())
+                .build();
 
         try {
-            product = Product.builder()
-                    .name(productRequest.getName())
-                    .description(productRequest.getDescription())
-                    .price(productRequest.getPrice())
-                    .build();
-
             findProduct(product.getName());
             log.info("{} already exist", product.getName(), new ProductAlreadyExistException(
                     String.format("%s already exist", product.getName()))
             );
+
         } catch (ProductNotFoundException e) {
             log.info("{} does not exist", product.getName());
             productRepository.save(product);
@@ -43,9 +42,11 @@ public class ProductService {
     }
 
     public List<ProductResponse> getAllProducts() {
+        log.info("Fetching product list");
         List<Product> productList = productRepository.findAll();
 
         if (!productList.isEmpty()) {
+            log.info("product list found");
             return productList.stream()
                     .map(this::mapToProductResponse)
                     .toList();
@@ -57,29 +58,36 @@ public class ProductService {
     }
 
     public ProductResponse getProduct(String name) {
+        ProductResponse response = new ProductResponse();
+
         try {
-            return mapToProductResponse(findProduct(name));
+            response = mapToProductResponse(findProduct(name));
+            log.info("{} found", name);
 
         } catch (ProductNotFoundException e) {
-            log.info("Product not found", e);
+            log.info("{} not found", name, e);
         }
-        return new ProductResponse();
+        return response;
     }
 
-    // FIXME: This should have its own service for store owner to add products.
     public ProductResponse deleteProduct(String name) {
+        ProductResponse response = new ProductResponse();
+
         try {
             Product product = findProduct(name);
-            productRepository.delete(findProduct(name));
-            return mapToProductResponse(product);
+            log.info("{} found", name);
+            productRepository.delete(product);
+            log.info("{} deleted", name);
+            response = mapToProductResponse(product);
 
         } catch (ProductNotFoundException e) {
-            log.info("Product not found", e);
+            log.info("{} not found", name, e);
         }
-        return new ProductResponse();
+        return response;
     }
 
     private Product findProduct(String name) {
+        log.info("Fetching {}", name);
         return productRepository.findByName(name)
                 .orElseThrow(() ->
                         new ProductNotFoundException(String.format("%s not found", name))
