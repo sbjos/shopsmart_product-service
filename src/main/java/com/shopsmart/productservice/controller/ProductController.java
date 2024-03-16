@@ -22,7 +22,8 @@ public class ProductController {
     public ResponseEntity<ProductResponse> addProduct(@RequestBody ProductRequest productRequest) {
         ProductResponse product = productService.addProduct(productRequest);
 
-        if (product.getName() == null) return new ResponseEntity<>(product, HttpStatus.OK);
+        if (product.getName() == null)
+            return new ResponseEntity<>(product, HttpStatus.OK);
         return new ResponseEntity<>(product, HttpStatus.CREATED);
     }
 

@@ -20,25 +20,27 @@ public class ProductService {
     private final ProductRepository productRepository;
 
     public ProductResponse addProduct(ProductRequest productRequest) {
+        ProductResponse response = new ProductResponse();
         Product product = Product.builder()
                 .name(productRequest.getName())
                 .description(productRequest.getDescription())
                 .price(productRequest.getPrice())
                 .build();
-
         try {
-            findProduct(product.getName());
-            log.info("{} already exist", product.getName(), new ProductAlreadyExistException(
-                    String.format("%s already exist", product.getName()))
+            String productName = findProduct(product.getName()).getName();
+            log.info("{} found", productName, new ProductAlreadyExistException(
+                    String.format("%s found", productName))
             );
 
         } catch (ProductNotFoundException e) {
-            log.info("{} does not exist", product.getName());
+            log.info("{} not found", product.getName());
+
             productRepository.save(product);
-            log.info("{} is saved", product.getName());
+            log.info("{} saved", product.getName());
+            response = mapToProductResponse(product);
         }
 
-        return mapToProductResponse(product);
+        return response;
     }
 
     public List<ProductResponse> getAllProducts() {
@@ -46,15 +48,15 @@ public class ProductService {
         List<Product> productList = productRepository.findAll();
 
         if (!productList.isEmpty()) {
-            log.info("product list found");
+            log.info("Product list found");
             return productList.stream()
                     .map(this::mapToProductResponse)
                     .toList();
 
         } else {
             log.info("Product list not found", new ProductNotFoundException("Product list not found"));
-            return List.of();
         }
+        return List.of();
     }
 
     public ProductResponse getProduct(String name) {
