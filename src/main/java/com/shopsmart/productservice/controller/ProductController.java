@@ -18,30 +18,38 @@ public class ProductController {
     private final ProductService productService;
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<ProductResponse> addProduct(@RequestBody ProductRequest productRequest) {
-        ProductResponse product = productService.addProduct(productRequest);
+    public ResponseEntity<?> addProduct(@RequestBody ProductRequest productRequest) {
+        ProductResponse response = productService.addProduct(productRequest);
 
-        if (product.getName() == null)
-            return new ResponseEntity<>(product, HttpStatus.OK);
-        return new ResponseEntity<>(product, HttpStatus.CREATED);
+        if (response.getName() == null)
+            return new ResponseEntity<>("Product already exist", HttpStatus.CONFLICT);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @GetMapping
-    @ResponseStatus(HttpStatus.OK)
-    public List<ProductResponse> getAllProducts() {
-        return productService.getAllProducts();
+    public ResponseEntity<?> getAllProducts() {
+        List<ProductResponse> response = productService.getAllProducts();
+
+        if (response.isEmpty())
+            return new ResponseEntity<>("Product list not found", HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping(value = "/{name}")
-    @ResponseStatus(HttpStatus.OK)
-    public ProductResponse getProduct(@PathVariable String name) {
-        return productService.getProduct(name);
+    public ResponseEntity<?> getProduct(@PathVariable String name) {
+        ProductResponse response = productService.getProduct(name);
+
+        if (response.getId() == null)
+            return new ResponseEntity<>(String.format("%s not found", name), HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @DeleteMapping(value = "/{name}")
-    @ResponseStatus(HttpStatus.OK)
-    public ProductResponse deleteProduct(@PathVariable String name) {
-        return productService.deleteProduct(name);
+    public ResponseEntity<?> deleteProduct(@PathVariable String name) {
+        ProductResponse response = productService.deleteProduct(name);
+
+        if (response.getId() == null)
+            return new ResponseEntity<>(String.format("%s does not exist", name), HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }
